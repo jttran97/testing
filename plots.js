@@ -1,4 +1,4 @@
-const url = "https://raw.githubusercontent.com/shemani2/project_3/jenni/total_combined_datat.json";
+const url = "https://raw.githubusercontent.com/jttran97/testing/main/total_combined_datat.json";
 
 function init() {
     d3.json(url)
@@ -31,7 +31,7 @@ function bubblechart(selectedCounty, metadata) {
             text: [countyData.County],
             mode: "markers",
             marker: {
-                size: countyData["Total New Cases"],
+                size: countyData["Total New Cases"] / 5,
                 color: countyData.Year, // Using different colors for different years
                 colorscale: "Earth"
             }
@@ -53,34 +53,54 @@ function barchart(selectedCounty, ditto) {
         console.log("No data available for the selected county.");
         return;
     }
-    let traceData = [];
-    filteredData.forEach((countyData) => {
-        let trace = {
-            x: [countyData["Total Vaccinations"]],
-            y: [countyData.Year],
-            text: [countyData.County],
-            type: "bar",
-            marker: {
-                color: "#4682B4"
-            },
-            orientation: "h"
-        };
-        traceData.push(trace);
-        Plotly.newPlot("bar", trace);
-    });
+
+    let traceData = {
+        x: filteredData.map(data => data["Vaccinations"]),
+        y: filteredData.map(data => data.Year),
+        text: filteredData.map(data => data.County),
+        type: "bar",
+        marker: {
+            color: filteredData.map(data => getColorForYear(data.Year)) // Assign color based on year
+        },
+        orientation: "h"
+    };
+
+    let layout = {
+        title: "Total Vaccinations by Year",
+        xaxis: { title: "Total Vaccinations" },
+        yaxis: { title: "Year" }
+    };
+
+    Plotly.newPlot("bar", [traceData], layout);
 }
+
+// Function to map year to color
+function getColorForYear(year) {
+    // Define colors for different years (you can customize this)
+    const yearColors = {
+        2021: "#1f77b4",
+        2022: "#ff7f0e",
+        2023: "#2ca02c",
+        // Add more years and corresponding colors as needed
+    };
+    
+    // Return color based on year, default to gray if year not found
+    return yearColors[year] || "#888888";
+}
+
+
+
 
 
 function optionChanged(selectedCounty) {
     d3.json(url)
         .then((data) => {
             bubblechart(selectedCounty, data.metadata);
+            barchart(selectedCounty, data.ditto); 
         })
         .catch((error) => {
             console.error("Error loading data:", error);
         });
 }
-
-init();
 
 init();
